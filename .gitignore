@@ -1,0 +1,7 @@
+.vscode/
+node_modules/
+package-lock.json
+test.csv
+test.txt
+test - Copy.csv
+test - Copy.txt

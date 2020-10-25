@@ -1,0 +1,16 @@
+{
+  "name": "boardgame-script",
+  "version": "1.0.0",
+  "description": "Script to scrape boardgameatlas.com api for educational purposes",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kilian Fastenakels",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "exceljs": "^4.1.1"
+  }
+}
