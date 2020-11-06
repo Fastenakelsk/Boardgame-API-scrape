@@ -8,20 +8,21 @@ const worksheet = workbook.addWorksheet('My Sheet');
 worksheet.state = 'visible';
 
 worksheet.properties.rowCount = 100;
-worksheet.properties.columnCount = 29;
+worksheet.properties.columnCount = 28;
 
 worksheet.columns = setColumns();
 
-for(let i = 1; i < 70; i++){
-  setTimeout(() => call('https://www.boardgameatlas.com/api/search?random=true&client_id=JLBr5npPhV', i, worksheet), 1000 * i);
-  //setTimeout(() => call('https://www.boardgameatlas.com/api/search?name=Ticket to Ride: Nordic Countries&client_id=JLBr5npPhV', i, worksheet), 1000 * i);
+let allRecords = [];
+
+for(let i = 1; i < 300; i++){
+  setTimeout(() => call('https://www.boardgameatlas.com/api/search?random=true&client_id=JLBr5npPhV', i, allRecords), 1000 * i);
 }
 
-async function call(url, i, sheet) {
+async function call(url, i) {
   await axios.get(url)
   .then(response => {
     const game = response.data.games[0];
-    console.log(game);
+    //console.log(game);
 
     const row = worksheet.getRow(i);
     
@@ -40,6 +41,8 @@ async function call(url, i, sheet) {
       price: game.price ? game.price : "EMPTY",
       msrp: game.msrp ? game.msrp : "EMPTY",
       primaryPublisher: game.primary_publisher ? game.primary_publisher : "EMPTY",
+      primaryDesigner: game.designers[0] ? game.designers[0] : "EMPTY",
+      primaryArtist: game.artists[0] ? game.artists[0] : "EMPTY",
       userRatings: game.num_user_ratings ? game.num_user_ratings : "EMPTY",
       averageRating: game.average_user_rating ? game.average_user_rating : "EMPTY",
       officialUrl: game.official_url ? game.official_url : "EMPTY",
@@ -55,13 +58,46 @@ async function call(url, i, sheet) {
       rank: game.rank ? game.rank : "EMPTY",
       trendingRank: game.trending_rank ? game.trending_rank : "EMPTY"
     };
-    //publisher, designers, developers, artists, names
-    //Remove all rows with empty values ?
 
-    row.commit();
+    //Remove all rows with empty values and check for duplicates
 
-    workbook.csv.writeFile('test.csv');
-    workbook.csv.writeFile('test.txt');
+    let commit = true;
+    let duplicate = false;
+
+    for(let item in row.values){
+      if (row.values[item] == "EMPTY"){
+        commit = false;
+      }
+    }
+
+    //console.log(row.values);
+
+    for(let record in allRecords){
+      if (allRecords[record][2] == row.values[2]){
+        duplicate = true;
+      }
+    }
+
+    if(commit){
+      if(duplicate){
+        console.log("DUPLICATE")
+        row.destroy();
+      }else{
+        console.log("COMMIT");
+        allRecords.push(row.values);
+        row.commit();
+        workbook.csv.writeFile('test.csv');
+        workbook.csv.writeFile('test.txt');
+      }
+    }else{
+      console.log("DESTROY");
+      row.destroy();
+    }
+
+    return allRecords;
+
+    //workbook.csv.writeFile('test.csv');
+    //workbook.csv.writeFile('test.txt');
   })
   .catch(error => {
     console.log(error);
@@ -84,11 +120,8 @@ function setColumns() {
     { header: 'price', key: 'price', width: 50 },
     { header: 'msrp', key: 'msrp', width: 50 },
     { header: 'primaryPublisher', key: 'primaryPublisher', width: 50 },
-    { header: 'publishers', key: 'publishers', width: 50 },
-    { header: 'designers', key: 'designers', width: 50 },
-    { header: 'developers', key: 'developers', width: 50 },
-    { header: 'artists', key: 'artists', width: 50 },
-    { header: 'names', key: 'names', width: 50 },
+    { header: 'primaryDesigner', key: 'primaryDesigner', width: 50 },
+    { header: 'primaryArtist', key: 'primaryArtist', width: 50 },
     { header: 'userRatings', key: 'userRatings', width: 50 },
     { header: 'averageRating', key: 'averageRating', width: 50 },
     { header: 'officialUrl', key: 'officialUrl', width: 50 },
